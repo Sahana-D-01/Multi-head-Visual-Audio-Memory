@@ -23,12 +23,16 @@ class Memory(nn.Module):
         nn.init.normal_(self.value, 0, 0.5)
 
         if self.dav:
+            #checking if it trained on different modalities of input data
             self.linear = nn.Linear(512 * n_head, dim)
+            #applying linear transformation to reduce dimensionality to "dim" while maintaining important information
             self.norm1 = nn.LayerNorm(dim)
             self.norm2 = nn.LayerNorm(dim)
             self.norm3 = nn.LayerNorm(dim)
             self.v_up = nn.Linear(512, dim)
+            #projects concatenated features onto lower dimensionality
         else:
+            #simpler layers since only one modality is being trained
             self.linear = nn.Linear(512 * n_head, 512)
             self.norm1 = nn.LayerNorm(512)
             self.norm2 = nn.LayerNorm(512)
