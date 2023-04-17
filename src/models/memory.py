@@ -10,8 +10,8 @@ class Memory(nn.Module):
 
         self.head = n_head
         self.slot = n_slot
-
-        self.key = nn.Parameter(torch.Tensor(int(n_head * n_slot), int(512 / n_head)), requires_grad=True)
+#storing the different heads in the same memory space; thus making it space efficient
+        self.key = nn.Parameter(torch.Tensor(int(n_head * n_slot), int(512 / n_head)), requires_grad=True) 
         nn.init.normal_(self.key, 0, 0.5)
         self.value = nn.Parameter(torch.Tensor(n_slot, 512), requires_grad=True)
         nn.init.normal_(self.value, 0, 0.5)
