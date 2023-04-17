@@ -39,8 +39,9 @@ class Memory(nn.Module):
             self.norm3 = nn.LayerNorm(512)
 
         self.q_embd = nn.Linear(dim, 512)
+        #embed vectors into space of 512
         self.v_embd = nn.Linear(512, 512)
-
+        
         self.dropout = nn.Dropout(0.5)
 
         self.radius = radius
