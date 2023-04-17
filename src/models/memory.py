@@ -4,14 +4,20 @@ import torch.nn.functional as F
 
 class Memory(nn.Module):
     def __init__(self, radius=16.0, n_slot=112, n_head=8, dim=512, diff_aud_vid=False):
+        #number of slots in one key memory
+        #number of heads in one key memory
+        #dim is the embedding dimension of each memory slot; number of features used to represent each slot
         super().__init__()
 
         self.dav = diff_aud_vid
-
         self.head = n_head
         self.slot = n_slot
-#storing the different heads in the same memory space; thus making it space efficient
-        self.key = nn.Parameter(torch.Tensor(int(n_head * n_slot), int(512 / n_head)), requires_grad=True) 
+        
+
+        self.key = nn.Parameter(torch.Tensor(int(n_head * n_slot), int(512 / n_head)), requires_grad=True)
+        #defining the dimensions of the memory network
+        #each head is allocated a dimension of 64; there are 8 heads: 64*8
+        
         nn.init.normal_(self.key, 0, 0.5)
         self.value = nn.Parameter(torch.Tensor(n_slot, 512), requires_grad=True)
         nn.init.normal_(self.value, 0, 0.5)
