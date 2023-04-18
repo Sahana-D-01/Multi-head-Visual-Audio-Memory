@@ -68,8 +68,7 @@ class Memory(nn.Module):
         #addressing vector calculation
         
         m_head_aud = torch.matmul(key_add, self.value.detach()) # BS, n_head, 512
-        m_head_aud = m_head_aud.view(B * S, -1)     #BS, n_head*512
-        vir_aud = self.norm2(self.linear(m_head_aud))   #BS, 512
+        #fetching audio wrt value feature
 
         te_fusion = self.norm1(query + vir_aud.view(B, S, -1))
         te_fusion = self.dropout(te_fusion)
@@ -83,7 +82,7 @@ class Memory(nn.Module):
             value_add = self.softmax2(self.radius * value_sim)
 
             aud = torch.matmul(value_add, self.value)   #BS,512
-
+            #audio renconstruction wrt key feature
             contrastive_loss = 0.5 * torch.abs(torch.eye(self.slot).cuda() - torch.matmul(value_norm, value_norm.transpose(0, 1))).sum()    #n_slot,n_slot
             contrastive_loss = contrastive_loss.unsqueeze(0)
             #contrastive loss calculation
