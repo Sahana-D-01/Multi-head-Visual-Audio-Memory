@@ -55,7 +55,7 @@ class Memory(nn.Module):
         B, S, C = query.size()
         #Batch size, sequence length, number of channels
         mer_query = query.view(B * S, -1)
-        tr_fusion, recon_loss, contrastive_loss = None, torch.zeros(1).cuda(), torch.zeros(1).cuda()
+        tr_fusion, recon_loss, add_loss = None, torch.zeros(1).cuda(), torch.zeros(1).cuda()
 
         key_norm = F.normalize(self.key.view(self.head, self.slot, -1), dim=2) #n_head, n_slot, head_dim
         embd_query = self.q_embd(mer_query) #B*S, n_head * head_dim
@@ -83,21 +83,23 @@ class Memory(nn.Module):
 
             aud = torch.matmul(value_add, self.value)   #BS,512
             #audio renconstruction wrt key feature
-            contrastive_loss = 0.5 * torch.abs(torch.eye(self.slot).cuda() - torch.matmul(value_norm, value_norm.transpose(0, 1))).sum()    #n_slot,n_slot
-            contrastive_loss = contrastive_loss.unsqueeze(0)
-            #contrastive loss calculation
+            
+            add_loss = F.kl_div(torch.log(key_add), value_add.detach(), reduction='batchmean')
+            add_loss = add_loss.unsqueeze(0)
+
+            #kullback-divergence loss calculation
             recon_loss = torch.abs(1.0 - F.cosine_similarity(aud, mer_value.detach(), 1))  #BS
             recon_loss = recon_loss.view(B, S).sum(1)   #B
-            #reconstructive loss calculation
+            #reconstructive loss calculationf
             
             if self.dav:
                 aud = self.v_up(aud)
             aud = self.norm3(aud)
             tr_fusion = self.norm1(query + aud.view(B, S, -1))
             tr_fusion = self.dropout(tr_fusion)
-
+            #concatenated features to be fed into the decoder
         if cha_first:
             te_fusion = te_fusion.transpose(1, 2).contiguous()
             if tr_fusion is not None:
                 tr_fusion = tr_fusion.transpose(1, 2).contiguous()
-        return te_fusion, tr_fusion, recon_loss, contrastive_loss
+        return te_fusion, tr_fusion, recon_loss, add_loss
