@@ -53,6 +53,7 @@ class Memory(nn.Module):
             query = query.transpose(1, 2).contiguous()
         # B, S, 512
         B, S, C = query.size()
+        #Batch size, sequence length, number of channels
         mer_query = query.view(B * S, -1)
         tr_fusion, recon_loss, contrastive_loss = None, torch.zeros(1).cuda(), torch.zeros(1).cuda()
 
