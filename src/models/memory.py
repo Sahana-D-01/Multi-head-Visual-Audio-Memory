@@ -63,8 +63,10 @@ class Memory(nn.Module):
         embd_query = F.normalize(embd_query, dim=2)
 
         key_sim = torch.einsum('bhd,hsd->bhs', embd_query, key_norm)    #BS, n_head, n_slot
+        #cosine similarity calculation
         key_add = self.softmax1(self.radius * key_sim)  # BS, n_head, n_slot
-
+        #addressing vector calculation
+        
         m_head_aud = torch.matmul(key_add, self.value.detach()) # BS, n_head, 512
         m_head_aud = m_head_aud.view(B * S, -1)     #BS, n_head*512
         vir_aud = self.norm2(self.linear(m_head_aud))   #BS, 512
@@ -84,10 +86,11 @@ class Memory(nn.Module):
 
             contrastive_loss = 0.5 * torch.abs(torch.eye(self.slot).cuda() - torch.matmul(value_norm, value_norm.transpose(0, 1))).sum()    #n_slot,n_slot
             contrastive_loss = contrastive_loss.unsqueeze(0)
-
+            #contrastive loss calculation
             recon_loss = torch.abs(1.0 - F.cosine_similarity(aud, mer_value.detach(), 1))  #BS
             recon_loss = recon_loss.view(B, S).sum(1)   #B
-
+            #reconstructive loss calculation
+            
             if self.dav:
                 aud = self.v_up(aud)
             aud = self.norm3(aud)
